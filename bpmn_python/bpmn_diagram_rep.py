@@ -10,6 +10,7 @@ import bpmn_python.bpmn_diagram_exception as bpmn_exception
 import bpmn_python.bpmn_diagram_export as bpmn_export
 import bpmn_python.bpmn_diagram_import as bpmn_import
 import bpmn_python.bpmn_process_csv_export as bpmn_csv_export
+import bpmn_process_odt_export as bpmn_odt_export
 import bpmn_python.bpmn_process_csv_import as bpmn_csv_import
 import bpmn_python.bpmn_python_consts as consts
 
@@ -98,6 +99,15 @@ class BpmnDiagramGraph(object):
         :param filename: string representing output file name.
         """
         bpmn_csv_export.BpmnDiagramGraphCsvExport.export_process_to_csv(self, directory, filename)
+
+    def export_odt_file(self, directory, filename):
+        """
+        Exports diagram inner graph to BPMN 2.0 XML file (with Diagram Interchange data).
+
+        :param directory: strings representing output directory,
+        :param filename: string representing output file name.
+        """
+        bpmn_odt_export.BpmnDiagramGraphOdtExport.export_process_to_odt(self, directory, filename)
 
     # Querying methods
     def get_nodes(self, node_type=""):
