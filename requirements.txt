@@ -1,6 +1,6 @@
 six
 pandas
-networkx
+networkx==1.11
 matplotlib
 pydotplus
 odfpy
