@@ -7,19 +7,14 @@ Process Modeling" by Środa K. and Łabuz M.
 import copy
 import errno
 import os
-import sys
 
 from odf import easyliststyle
 from odf.opendocument import OpenDocumentText
 from odf.text import P, List, ListItem
-
-sys.path.append("/Users/marek/Documents/uni/bpmn-python")
-
 import bpmn_python.bpmn_python_consts as consts
 import bpmn_python.bpmn_diagram_exception as bpmn_exception
 import bpmn_python.bpmn_import_utils as utils
-import bpmn_process_csv_export as bpmn_csv_export
-import bpmn_diagram_rep as diagram
+import bpmn_python.bpmn_process_csv_export as bpmn_csv_export
 
 
 class BpmnDiagramGraphOdtExport(object):
@@ -60,7 +55,7 @@ class BpmnDiagramGraphOdtExport(object):
             if exception.errno != errno.EEXIST:
                 raise
 
-        item_list = BpmnDiagramGraphOdtExport.p(export_elements)
+        item_list = BpmnDiagramGraphOdtExport.transform_into_list_items(export_elements)
         item_list = BpmnDiagramGraphOdtExport.reassign_goto(item_list, export_elements)
         item_list = map(lambda item: item["Prefix"] + item["Label"], item_list)
 
@@ -71,19 +66,16 @@ class BpmnDiagramGraphOdtExport(object):
     def reassign_goto(item_list, export_elements):
         """
         Reassigning goto activities adequately to the list numbering.
-        :param item_list: TODO,
-        :param export_elements: TODO.
+        :param item_list: array of list items,
+        :param export_elements: array of dictionaries with activities parameters.
         """
-        print("\n".join(map(lambda x: x["Order"] + "\t" + x["Activity"], export_elements)))
         result = item_list[:]
         for index, item in enumerate(item_list):
             if item["Label"].startswith("goto"):
                 order = item["Label"].replace("goto ", "")
                 filtered_arr_order = list(filter(lambda elem: elem["Order"] == order, export_elements))
-                print(filtered_arr_order, item)
                 if len(filtered_arr_order) > 0:
                     activity = filtered_arr_order[0]["Activity"]
-                    print(activity)
                     i = len(item_list) - 1
                     while i > 0:
                         if item_list[i]["Label"] == activity:
@@ -106,7 +98,6 @@ class BpmnDiagramGraphOdtExport(object):
                         i -= 1
 
                     new_prefix = ".".join(map(lambda n: str(n), position)) + "."
-                    print(item_list[i])
                     result[index]["Label"] = "goto " + new_prefix
         return result
 
@@ -114,23 +105,23 @@ class BpmnDiagramGraphOdtExport(object):
     def prefix(n):
         """
         Reassigning goto activities adequately to the list numbering.
-        :param n: TODO.
+        :param n: nesting depth of list item.
         """
         return "".join([">"] * n)
 
     @staticmethod
-    def p(arr, last_order="0", depth=0, last_condition=""):
+    def transform_into_list_items(export_elements, last_order="0", depth=0, last_condition=""):
         """
         TODO.
-        :param arr: TODO,
-        :param last_order: TODO,
-        :param depth: TODO,
-        :param last_condition: TODO.
+        :param export_elements: array of dictionaries with activities parameters,
+        :param last_order: order of previous list item,
+        :param depth: nesting depth of list item,
+        :param last_condition: condition of previous list item.
         """
-        if len(arr) == 0:
+        if len(export_elements) == 0:
             return []
 
-        first, rest = arr[0], arr[1:]
+        first, rest = export_elements[0], export_elements[1:]
 
         order_length = len(last_order)
         new_depth = depth
@@ -145,7 +136,7 @@ class BpmnDiagramGraphOdtExport(object):
             activity = activity if activity != "" else "Terminate"
 
         if activity == "":
-            return BpmnDiagramGraphOdtExport.p(rest, last_order, depth, last_condition)
+            return BpmnDiagramGraphOdtExport.transform_into_list_items(rest, last_order, depth, last_condition)
 
         if len(order) < order_length:
             new_depth -= 2 if last_condition != "" else 1
@@ -164,15 +155,15 @@ class BpmnDiagramGraphOdtExport(object):
 
         result.append({"Prefix": BpmnDiagramGraphOdtExport.prefix(new_depth), "Label": activity})
 
-        return result + BpmnDiagramGraphOdtExport.p(rest, order, new_depth, new_condition)
+        return result + BpmnDiagramGraphOdtExport.transform_into_list_items(rest, order, new_depth, new_condition)
 
     @staticmethod
     def create_list(item_list, indent_delim, style_name):
         """
         TODO.
-        :param item_list: TODO,
-        :param indent_delim: TODO,
-        :param style_name: TODO.
+        :param item_list: array of list items,
+        :param indent_delim: char identifying the nesting depth of list items,
+        :param style_name: easyliststyle identifier.
         """
         list_array = []
         last_level = 0
@@ -225,9 +216,3 @@ class BpmnDiagramGraphOdtExport(object):
         textdoc.text.addElement(list_element)
 
         textdoc.save(odt_file)
-
-
-if __name__ == "__main__":
-    bpmn_graph = diagram.BpmnDiagramGraph()
-    bpmn_graph.load_diagram_from_xml_file(os.path.abspath("diagram.bpmn"))
-    bpmn_graph.export_odt_file('./', "diagram.odt")

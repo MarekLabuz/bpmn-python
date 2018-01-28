@@ -5,9 +5,6 @@ Unit tests for exporting process to CSV functionality.
 
 import os
 import unittest
-import sys
-
-sys.path.append("/Users/marek/Documents/uni/bpmn-python")
 
 import bpmn_python.bpmn_diagram_rep as diagram
 

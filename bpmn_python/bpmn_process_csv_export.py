@@ -9,16 +9,10 @@ import copy
 import errno
 import os
 import string
-import sys
-
-sys.path.append("/Users/marek/Documents/uni/bpmn-python")
-
 
 import bpmn_python.bpmn_python_consts as consts
 import bpmn_python.bpmn_diagram_exception as bpmn_exception
 import bpmn_python.bpmn_import_utils as utils
-import bpmn_diagram_rep as diagram
-
 
 
 class BpmnDiagramGraphCsvExport(object):
@@ -297,9 +291,3 @@ class BpmnDiagramGraphCsvExport(object):
             file_object.write(
                 export_element["Order"] + "," + export_element["Activity"] + "," + export_element["Condition"] + "," +
                 export_element["Who"] + "," + export_element["Subprocess"] + "," + export_element["Terminated"] + "\n")
-
-
-if __name__ == "__main__":
-    bpmn_graph = diagram.BpmnDiagramGraph()
-    bpmn_graph.load_diagram_from_xml_file(os.path.abspath("diagram.bpmn"))
-    bpmn_graph.export_csv_file('./', "diagram.csv")
