@@ -13,13 +13,13 @@ from odf import easyliststyle
 from odf.opendocument import OpenDocumentText
 from odf.text import P, List, ListItem
 
+sys.path.append("/Users/marek/Documents/uni/bpmn-python")
+
 import bpmn_python.bpmn_python_consts as consts
 import bpmn_python.bpmn_diagram_exception as bpmn_exception
 import bpmn_python.bpmn_import_utils as utils
-import bpmn_python.bpmn_process_csv_export as bpmn_csv_export
+import bpmn_process_csv_export as bpmn_csv_export
 import bpmn_diagram_rep as diagram
-
-sys.path.append("/Users/marek/Documents/uni/bpmn-python")
 
 
 class BpmnDiagramGraphOdtExport(object):
@@ -74,13 +74,16 @@ class BpmnDiagramGraphOdtExport(object):
         :param item_list: TODO,
         :param export_elements: TODO.
         """
+        print("\n".join(map(lambda x: x["Order"] + "\t" + x["Activity"], export_elements)))
         result = item_list[:]
         for index, item in enumerate(item_list):
             if item["Label"].startswith("goto"):
                 order = item["Label"].replace("goto ", "")
                 filtered_arr_order = list(filter(lambda elem: elem["Order"] == order, export_elements))
+                print(filtered_arr_order, item)
                 if len(filtered_arr_order) > 0:
                     activity = filtered_arr_order[0]["Activity"]
+                    print(activity)
                     i = len(item_list) - 1
                     while i > 0:
                         if item_list[i]["Label"] == activity:
@@ -91,7 +94,6 @@ class BpmnDiagramGraphOdtExport(object):
                     depth = len(prefix)
 
                     position = [1] * (depth + 1)
-                    print(position, depth)
 
                     i -= 1
                     while i >= 0 and depth >= 0:
@@ -104,6 +106,7 @@ class BpmnDiagramGraphOdtExport(object):
                         i -= 1
 
                     new_prefix = ".".join(map(lambda n: str(n), position)) + "."
+                    print(item_list[i])
                     result[index]["Label"] = "goto " + new_prefix
         return result
 
@@ -139,7 +142,7 @@ class BpmnDiagramGraphOdtExport(object):
         terminated = first["Terminated"]
 
         if terminated == "yes":
-            activity = "Terminate"
+            activity = activity if activity != "" else "Terminate"
 
         if activity == "":
             return BpmnDiagramGraphOdtExport.p(rest, last_order, depth, last_condition)
@@ -226,5 +229,5 @@ class BpmnDiagramGraphOdtExport(object):
 
 if __name__ == "__main__":
     bpmn_graph = diagram.BpmnDiagramGraph()
-    bpmn_graph.load_diagram_from_xml_file(os.path.abspath("tram-process.bpmn"))
-    bpmn_graph.export_odt_file('./', "tram.odt")
+    bpmn_graph.load_diagram_from_xml_file(os.path.abspath("diagram.bpmn"))
+    bpmn_graph.export_odt_file('./', "diagram.odt")
